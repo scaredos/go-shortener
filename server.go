@@ -1,5 +1,3 @@
-// Author: github.com/scaredos
-// Copyright (c) 2021 Steven
 package main
 
 import (
@@ -80,6 +78,7 @@ func addUrl(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query()["url"]
 	short := r.URL.Query()["short"]
 	if len(url) < 1 {
+		fmt.Fprintf(w, "{'error': 'url parameter required', 'status': 'fail'}")
 		fmt.Fprintf(w, "you must supply the parameter 'url'\n")
 		return
 	}
@@ -88,7 +87,11 @@ func addUrl(w http.ResponseWriter, r *http.Request) {
 	} else {
 		shorten = short[0]
 	}
+	if index(shorts, shorten) != -1 {
+		fmt.Fprintf(w, fmt.Sprintf("{'error': '%s already exists', 'status': 'fail'}", shorten))
+		return
+	}
 	shorts = append(shorts, shorten)
 	urls = append(urls, url[0])
-	fmt.Fprintf(w, fmt.Sprintf("now forwarding %s/%s to %s\n", r.Host, shorten, url[0]))
+	fmt.Fprintf(w, fmt.Sprintf("{'url': '%s', 'short_link': 'http://%s/%s', 'status': 'good'}", url[0], r.Host, shorten))
 }
