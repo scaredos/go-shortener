@@ -1,3 +1,5 @@
+// Author: github.com/scaredos
+// Copyright (c) 2021 Steven
 package main
 
 import (
