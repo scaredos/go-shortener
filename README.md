@@ -22,6 +22,15 @@ Add URL: example.com:1720/api/v1/addUrl?url=https://github.com/scaredos&short=gi
 Use URL: example.com:1720/github
 ```
 
+### Editing URLs 
+- To edit a shortened URL, use the API
+- GET `/api/v1/editUrl` with parameters `?url=&short=`
+- You must specify both URL (the new destination URL) and short (the shortened URL)
+```
+Add URL: example.com:1720/api/v1/addUrl?url=https://github.com/scaredos&short=github
+Edit URL: example.com:1720/api/v1/editUrl?url=https://bing.com/&short=github
+```
+
 ### TODO
 - Add password for adding URLs to service
 - Add option for logging requests (IP, URL, User-Agent)
