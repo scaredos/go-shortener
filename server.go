@@ -26,7 +26,7 @@ func RandStringBytes(n int) string {
 }
 
 func index(slice []string, item string) int {
-	for i, _ := range slice {
+	for i := range slice {
 		if slice[i] == item {
 			return i
 		}
@@ -57,6 +57,7 @@ func main() {
 	fmt.Printf("Running on :%s\n", port)
 	http.HandleFunc("/", urlShortener)
 	http.HandleFunc("/api/v1/addUrl", addUrl)
+	http.HandleFunc("/api/v1/editUrl", editUrl)
 	http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 }
 
@@ -79,7 +80,6 @@ func addUrl(w http.ResponseWriter, r *http.Request) {
 	short := r.URL.Query()["short"]
 	if len(url) < 1 {
 		fmt.Fprintf(w, "{'error': 'url parameter required', 'status': 'fail'}")
-		fmt.Fprintf(w, "you must supply the parameter 'url'\n")
 		return
 	}
 	if len(short) < 1 {
@@ -93,5 +93,29 @@ func addUrl(w http.ResponseWriter, r *http.Request) {
 	}
 	shorts = append(shorts, shorten)
 	urls = append(urls, url[0])
+	fmt.Fprintf(w, fmt.Sprintf("{'url': '%s', 'short_link': 'http://%s/%s', 'status': 'good'}", url[0], r.Host, shorten))
+}
+
+// API for editng destinations of the shortened URL
+// host:port/api/v1/editUrl?url=&short=
+// You must specify the new url as "url" and the shortened url as "short"
+// Example: http://domain.com:1337/api/v1/editUrl?url=https://github.com/&short=jWhhgeM
+func editUrl(w http.ResponseWriter, r *http.Request) {
+	url := r.URL.Query()["url"]
+	short := r.URL.Query()["short"]
+	if len(url) < 1 {
+		fmt.Fprintf(w, "{'error': 'url parameter required', 'status': 'fail'}\n")
+		return
+	}
+	if len(short) < 1 {
+		fmt.Fprintf(w, "{'error': 'short parameter required', 'status': 'fail'}\n")
+		return
+	}
+	if index(shorts, short[0]) == -1 {
+		fmt.Fprintf(w, "{'error': 'short does not exist', 'status': 'fail'}\n")
+		return
+	}
+	shortPlace := index(shorts, short[0])
+	urls[shortPlace] = url[0]
 	fmt.Fprintf(w, fmt.Sprintf("{'url': '%s', 'short_link': 'http://%s/%s', 'status': 'good'}", url[0], r.Host, shorten))
 }
