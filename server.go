@@ -11,6 +11,7 @@ import (
 
 var urls []string   // URLs to forward to
 var shorts []string // Shortened URLs
+var passes []string // Passwords to edit URLs
 var port string     // Port to run service on
 var shorten string
 
@@ -78,8 +79,13 @@ func urlShortener(w http.ResponseWriter, r *http.Request) {
 func addUrl(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query()["url"]
 	short := r.URL.Query()["short"]
+	passw := r.URL.Query()["password"]
 	if len(url) < 1 {
 		fmt.Fprintf(w, "{'error': 'url parameter required', 'status': 'fail'}")
+		return
+	}
+	if len(passw) < 1 {
+		fmt.Fprintf(w, "{'error': ' password parameter required', 'status': 'fail'}")
 		return
 	}
 	if len(short) < 1 {
@@ -93,7 +99,8 @@ func addUrl(w http.ResponseWriter, r *http.Request) {
 	}
 	shorts = append(shorts, shorten)
 	urls = append(urls, url[0])
-	fmt.Fprintf(w, fmt.Sprintf("{'url': '%s', 'short_link': 'http://%s/%s', 'status': 'good'}", url[0], r.Host, shorten))
+	passes = append(passes, passw[0])
+	fmt.Fprintf(w, fmt.Sprintf("{'url': '%s', 'short_link': 'http://%s/%s', 'password': '%s', 'status': 'good'}", url[0], r.Host, shorten, passw[0]))
 }
 
 // API for editng destinations of the shortened URL
@@ -103,6 +110,7 @@ func addUrl(w http.ResponseWriter, r *http.Request) {
 func editUrl(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query()["url"]
 	short := r.URL.Query()["short"]
+	passw := r.URL.Query()["password"]
 	if len(url) < 1 {
 		fmt.Fprintf(w, "{'error': 'url parameter required', 'status': 'fail'}\n")
 		return
@@ -111,11 +119,19 @@ func editUrl(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "{'error': 'short parameter required', 'status': 'fail'}\n")
 		return
 	}
+	if len(passw) < 1 {
+		fmt.Fprintf(w, "{'error': 'password parameter required', 'status': 'fail'}")
+		return
+	}
 	if index(shorts, short[0]) == -1 {
 		fmt.Fprintf(w, "{'error': 'short does not exist', 'status': 'fail'}\n")
 		return
 	}
 	shortPlace := index(shorts, short[0])
+	if index(passes, passw[0]) != shortPlace {
+		fmt.Fprintf(w, "{'error': 'password incorrect', 'status': 'fail'}")
+		return
+	}
 	urls[shortPlace] = url[0]
 	fmt.Fprintf(w, fmt.Sprintf("{'url': '%s', 'short_link': 'http://%s/%s', 'status': 'good'}", url[0], r.Host, shorten))
 }
